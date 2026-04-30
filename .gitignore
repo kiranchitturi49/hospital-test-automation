@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+test-results.xml
+test-report.html
+.venv/
+venv/
+*.log

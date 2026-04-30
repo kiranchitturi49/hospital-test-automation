@@ -1,0 +1,139 @@
+"""
+Fresh seed: wipe all clinical data, insert 10 female patients.
+  - 5 with appointments TODAY
+  - 3 with appointments TOMORROW
+  - 2 historical (past)
+Patient IDs follow app logic: DDMMYYYYpppYY
+
+Run inside container:
+  docker cp seeds/seed_fresh.py hospital_api:/app/seed_fresh.py
+  docker exec hospital_api python seed_fresh.py
+"""
+import random
+from datetime import timedelta, datetime
+
+from app.core.database import SessionLocal
+from app.models.patient import Patient, Gender, BloodGroup, PatientFormType, PaymentMode
+from app.models.appointment import Appointment, AppointmentStatus
+from app.models.prescription import Prescription
+from app.models.medicine_sale import MedicineSale
+from app.models.user import User
+from app.core.security import get_password_hash
+from base import (TODAY, TOMORROW, NOW, FEMALE_FIRST, LAST_NAMES,
+                  rand_phone, rand_dob, rand_address, generate_patient_id)
+
+PATIENTS = [
+    # TODAY (5)
+    {"first": "Lakshmi",       "last": "Reddy",    "appt": TODAY,                     "reason": "BP Check",           "form": PatientFormType.GENERAL},
+    {"first": "Saraswathi",    "last": "Naidu",    "appt": TODAY,                     "reason": "Diabetes Follow-up", "form": PatientFormType.GENERAL},
+    {"first": "Padmavathi",    "last": "Chowdary", "appt": TODAY,                     "reason": "Fever & Cold",       "form": PatientFormType.MATERNITY},
+    {"first": "Annapurna",     "last": "Varma",    "appt": TODAY,                     "reason": "General Checkup",    "form": PatientFormType.GENERAL},
+    {"first": "Vijayalakshmi", "last": "Rao",      "appt": TODAY,                     "reason": "Knee Pain",          "form": PatientFormType.GENERAL},
+    # TOMORROW (3)
+    {"first": "Radhika",       "last": "Sharma",   "appt": TOMORROW,                  "reason": "Skin Allergy",       "form": PatientFormType.GENERAL},
+    {"first": "Naga Laxmi",    "last": "Goud",     "appt": TOMORROW,                  "reason": "Cough & Cold",       "form": PatientFormType.GENERAL},
+    {"first": "Bhavani",       "last": "Raju",     "appt": TOMORROW,                  "reason": "Stomach Pain",       "form": PatientFormType.MATERNITY},
+    # PAST (2)
+    {"first": "Sivagami",      "last": "Naidu",    "appt": TODAY - timedelta(days=7), "reason": "Back Pain",          "form": PatientFormType.GENERAL},
+    {"first": "Santha Kumari", "last": "Reddy",    "appt": TODAY - timedelta(days=3), "reason": "Headache",           "form": PatientFormType.GENERAL},
+]
+
+db = SessionLocal()
+try:
+    # ── Wipe (FK-safe order) ──────────────────────────────────────────────────
+    print("Clearing existing data...")
+    d_ms = db.query(MedicineSale).delete()
+    d_rx = db.query(Prescription).delete()
+    d_ap = db.query(Appointment).delete()
+    d_pt = db.query(Patient).delete()
+    db.commit()
+    print(f"  Removed: {d_ms} sales | {d_rx} prescriptions | {d_ap} appointments | {d_pt} patients")
+
+    # ── Ensure nurse1 user ────────────────────────────────────────────────────
+    if not db.query(User).filter(User.username == "nurse1").first():
+        db.add(User(username="nurse1", email="nurse1@hospital.local",
+                    hashed_password=get_password_hash("nurse123"),
+                    full_name="Nurse Kavitha", role="staff",
+                    phone_number="9848011111", is_active=True,
+                    created_at=NOW, updated_at=NOW))
+        db.commit()
+        print("  ✅ nurse1 created")
+    else:
+        print("  ℹ️  nurse1 exists — skipped")
+
+    # ── Insert patients ───────────────────────────────────────────────────────
+    print(f"\nToday: {TODAY}  |  Tomorrow: {TOMORROW}\n")
+    token_today = 0
+
+    for idx, p in enumerate(PATIENTS, start=1):
+        phone  = rand_phone()
+        pid    = generate_patient_id(db, phone)
+        hour   = 9 + (idx % 8)
+        appt_dt = datetime.combine(p["appt"], datetime.min.time().replace(hour=hour, minute=0))
+
+        due_date = (TODAY + timedelta(days=random.randint(20, 45))
+                    if p["form"] == PatientFormType.MATERNITY else None)
+
+        if p["appt"] == TODAY:
+            token_today += 1
+            token_num = token_today
+            status = AppointmentStatus.CONFIRMED
+        elif p["appt"] > TODAY:
+            token_num = idx
+            status = AppointmentStatus.SCHEDULED
+        else:
+            token_num = idx
+            status = AppointmentStatus.COMPLETED
+
+        patient = Patient(
+            patient_id=pid,
+            first_name=p["first"], last_name=p["last"],
+            date_of_birth=rand_dob(),
+            gender=Gender.FEMALE,
+            blood_group=random.choice(list(BloodGroup)),
+            phone=phone, address=rand_address(),
+            patient_form_type=p["form"],
+            appointment_date=p["appt"],
+            due_date=due_date,
+            next_visit_date=(p["appt"] + timedelta(days=7) if p["appt"] >= TODAY else None),
+            payment_mode=random.choice([PaymentMode.CASH, PaymentMode.UPI]),
+            amount=random.choice([200, 300, 500, 800]),
+            medical_history=random.choice([None, "Hypertension", "Diabetes", "Thyroid"]),
+            allergies=random.choice([None, None, "Penicillin"]),
+            created_at=NOW, updated_at=NOW,
+        )
+        db.add(patient)
+        db.flush()
+
+        db.add(Appointment(
+            appointment_number=f"APT-{idx:04d}",
+            token_number=token_num, token_date=appt_dt,
+            patient_id=patient.id, patient_str_id=pid,
+            doctor_id=None, appointment_date=appt_dt,
+            duration_minutes=30, status=status,
+            reason=p["reason"], is_new_patient=1,
+            created_at=NOW, updated_at=NOW,
+        ))
+
+        tag = "TODAY   " if p["appt"] == TODAY else ("TOMORROW" if p["appt"] == TOMORROW else "PAST    ")
+        print(f"  [{tag}] {pid}  {p['first']:18s} {p['last']:10s}  {p['reason']}")
+
+    db.commit()
+
+    total   = db.query(Patient).count()
+    today_c = db.query(Appointment).filter(
+        Appointment.appointment_date >= datetime.combine(TODAY, datetime.min.time()),
+        Appointment.appointment_date <  datetime.combine(TOMORROW, datetime.min.time()),
+    ).count()
+    tom_c = db.query(Appointment).filter(
+        Appointment.appointment_date >= datetime.combine(TOMORROW, datetime.min.time()),
+        Appointment.appointment_date <  datetime.combine(TOMORROW + timedelta(days=1), datetime.min.time()),
+    ).count()
+    print(f"\n✅ Done — {total} patients | {today_c} today | {tom_c} tomorrow")
+
+except Exception as e:
+    db.rollback()
+    print(f"❌ Error: {e}")
+    raise
+finally:
+    db.close()

@@ -1,0 +1,74 @@
+name: "Seed Data"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "production"
+        type: choice
+        options: [production]
+      seed_script:
+        description: "Seed script to run"
+        required: true
+        default: "seed_fresh"
+        type: choice
+        options:
+          - seed_fresh       # wipe + 10 female patients
+
+env:
+  DEPLOY_PATH: /opt/hospital-management
+
+jobs:
+  seed:
+    name: "Seed ${{ inputs.environment }} — ${{ inputs.seed_script }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy seed base helpers to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:        ${{ secrets.EC2_HOST }}
+          username:    ubuntu
+          key:         ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            echo "Preparing seed directory on host..."
+            mkdir -p /tmp/seeds
+
+      - name: Upload seed scripts via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          source:   "seeds/*"
+          target:   "/tmp/seeds/"
+          strip_components: 1
+
+      - name: Run seed inside container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:        ${{ secrets.EC2_HOST }}
+          username:    ubuntu
+          key:         ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            echo "=== Copying seeds into container ==="
+            docker cp /tmp/seeds/base.py hospital_api:/app/base.py
+            docker cp /tmp/seeds/${{ inputs.seed_script }}.py hospital_api:/app/${{ inputs.seed_script }}.py
+
+            echo "=== Running ${{ inputs.seed_script }}.py ==="
+            docker exec hospital_api python ${{ inputs.seed_script }}.py
+
+            echo "=== Cleanup ==="
+            docker exec hospital_api rm -f /app/base.py /app/${{ inputs.seed_script }}.py
+            rm -rf /tmp/seeds
+
+            echo "✅ Seed complete"
