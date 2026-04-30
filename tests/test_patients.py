@@ -33,8 +33,8 @@ def test_patient_id_format(base_url, admin_headers):
     patients = r.json()
     for p in patients:
         pid = p.get("patient_id", "")
-        # Format: DDMMYYYYpppYY (14 chars) or DDMMYYYYpppYY-N (16+ chars)
-        assert len(pid) >= 14, f"Invalid patient ID format: {pid}"
+        # Format: DDMMYYYYpppYY (13 chars) or DDMMYYYYpppYY-N (15+ chars)
+        assert len(pid) >= 13, f"Invalid patient ID format: {pid}"
         assert pid[:8].isdigit(), f"Date part not numeric: {pid}"
 
 

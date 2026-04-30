@@ -18,9 +18,9 @@ def test_patient_prescriptions_empty_after_seed(base_url, admin_headers):
         f"{base_url}/api/v1/patients/", headers=admin_headers, timeout=10
     ).json()
     assert len(patients) > 0
-    patient_db_id = patients[0]["id"]
+    patient_str_id = patients[0]["patient_id"]   # e.g. 3004202668726
     r = requests.get(
-        f"{base_url}/api/v1/prescriptions/patient/{patient_db_id}",
+        f"{base_url}/api/v1/prescriptions/patient/{patient_str_id}",
         headers=admin_headers,
         timeout=10,
     )
