@@ -1,8 +1,8 @@
 """
-Fresh seed: wipe all clinical data, insert 10 female patients.
-  - 5 with appointments TODAY
-  - 3 with appointments TOMORROW
-  - 2 historical (past)
+Fresh seed: wipe all clinical data, insert 50 patients.
+  - 20 with appointments TODAY
+  - 15 with appointments TOMORROW
+  - 15 historical (past)
 Patient IDs follow app logic: OP-DDmmmYY
 
 Run inside container:
@@ -26,24 +26,33 @@ from app.models.inpatient_prescription import InpatientPrescription
 from app.models.patient_history import PatientHistory
 from app.models.user import User
 from app.core.security import get_password_hash
-from base import (TODAY, TOMORROW, NOW, FEMALE_FIRST, LAST_NAMES,
-                  rand_phone, rand_dob, rand_address, generate_patient_id)
+from base import (TODAY, TOMORROW, NOW, FEMALE_FIRST, MALE_FIRST, LAST_NAMES,
+                  rand_phone, rand_dob, rand_address, generate_patient_id, REASONS)
 
-PATIENTS = [
-    # TODAY (5)
-    {"first": "Lakshmi",       "last": "Reddy",    "appt": TODAY,                     "reason": "BP Check",           "form": PatientFormType.GENERAL},
-    {"first": "Saraswathi",    "last": "Naidu",    "appt": TODAY,                     "reason": "Diabetes Follow-up", "form": PatientFormType.GENERAL},
-    {"first": "Padmavathi",    "last": "Chowdary", "appt": TODAY,                     "reason": "Fever & Cold",       "form": PatientFormType.MATERNITY},
-    {"first": "Annapurna",     "last": "Varma",    "appt": TODAY,                     "reason": "General Checkup",    "form": PatientFormType.GENERAL},
-    {"first": "Vijayalakshmi", "last": "Rao",      "appt": TODAY,                     "reason": "Knee Pain",          "form": PatientFormType.GENERAL},
-    # TOMORROW (3)
-    {"first": "Radhika",       "last": "Sharma",   "appt": TOMORROW,                  "reason": "Skin Allergy",       "form": PatientFormType.GENERAL},
-    {"first": "Naga Laxmi",    "last": "Goud",     "appt": TOMORROW,                  "reason": "Cough & Cold",       "form": PatientFormType.GENERAL},
-    {"first": "Bhavani",       "last": "Raju",     "appt": TOMORROW,                  "reason": "Stomach Pain",       "form": PatientFormType.MATERNITY},
-    # PAST (2)
-    {"first": "Sivagami",      "last": "Naidu",    "appt": TODAY - timedelta(days=7), "reason": "Back Pain",          "form": PatientFormType.GENERAL},
-    {"first": "Santha Kumari", "last": "Reddy",    "appt": TODAY - timedelta(days=3), "reason": "Headache",           "form": PatientFormType.GENERAL},
-]
+def generate_seed_patients(count: int):
+    patients = []
+    for idx in range(count):
+        gender = random.choice([Gender.FEMALE, Gender.MALE])
+        first = random.choice(FEMALE_FIRST if gender == Gender.FEMALE else MALE_FIRST)
+        last = random.choice(LAST_NAMES)
+        if idx < 20:
+            appt = TODAY
+        elif idx < 35:
+            appt = TOMORROW
+        else:
+            appt = TODAY - timedelta(days=random.randint(3, 15))
+
+        patients.append({
+            "first": first,
+            "last": last,
+            "appt": appt,
+            "reason": random.choice(REASONS),
+            "form": random.choice(list(PatientFormType)),
+            "gender": gender,
+        })
+    return patients
+
+PATIENTS = generate_seed_patients(50)
 
 db = SessionLocal()
 try:
@@ -106,7 +115,7 @@ try:
             patient_id=pid,
             first_name=p["first"], last_name=p["last"],
             date_of_birth=rand_dob(),
-            gender=Gender.FEMALE,
+            gender=p["gender"],
             blood_group=random.choice(list(BloodGroup)),
             phone=phone, address=rand_address(),
             patient_form_type=p["form"],
