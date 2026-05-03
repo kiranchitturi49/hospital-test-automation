@@ -37,7 +37,9 @@ def test_patient_id_format(base_url, admin_headers):
         pid = p.get("patient_id", "")
         # Format: OP-DDMMYYYY-NNN-N (12 chars) or similar
         assert len(pid) >= 12, f"Invalid patient ID format: {pid}"
-        assert pid[:8].isdigit(), f"Date part not numeric: {pid}"
+        assert pid.startswith("OP-"), f"Invalid patient ID prefix: {pid}"
+        # Check date part (positions 3-9 should be numeric)
+        assert pid[3:10].isdigit(), f"Date part not numeric: {pid}"
 
 
 def test_get_single_patient(base_url, admin_headers):
