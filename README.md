@@ -1,24 +1,34 @@
-# Hospital Test Automation
+# Hospital Test Automation & Documentation
 
-Separate test and seed automation repo — completely decoupled from the app.
+Comprehensive test suite, documentation, and compliance verification for the Hospital Management System.
 
 ## Structure
 
 ```
-.github/workflows/
-  api-tests.yml     # Run API tests against live environment (daily + on-demand)
-  seed-data.yml     # Seed data into EC2 via docker exec (on-demand)
+docs/
+  er-diagram.md              # Complete ER diagram (Mermaid) + textual description
+  user-guide.md              # Step-by-step user guide for all discovered flows
+  slideshow.html             # Interactive HTML slideshow (12 slides, keyboard nav)
 seeds/
-  base.py           # Shared helpers (names, ID generation)
-  seed_fresh.py     # Wipe DB + insert 10 female patients
+  base.py                    # Shared helpers (names, ID generation)
+  seed_fresh.py              # Wipe DB + insert sample patients
   fixtures/
-    patients.json   # Patient data fixture reference
+    patients.json            # Patient data fixture reference
 tests/
-  conftest.py       # Session-scoped fixtures (auth tokens, base URL)
-  test_auth.py      # Login, token, protected route tests
-  test_patients.py  # Patient list, gender, ID format tests
-  test_appointments.py  # Appointment list and date tests
-  test_prescriptions.py # Prescription access tests
+  conftest.py                # Session-scoped fixtures (auth tokens, base URL)
+  test_auth.py               # Login, token, protected route tests
+  test_patients.py           # Patient CRUD, search, history tests
+  test_appointments.py       # Appointment list and date tests
+  test_prescriptions.py      # Prescription CRUD tests
+  test_medicine_inventory.py # Medicine CRUD, stock, expiry, low-stock
+  test_medicine_sales.py     # Sales (OP/IP), stock deduction, validation
+  test_medicine_returns.py   # Returns: stock restore, price recalc, fraud prevention
+  test_inpatient_flow.py     # IP admission, prescriptions, diagnostics, activities, billing
+  test_finance_audit.py      # Expenses, financial summaries, role access
+  non_functional/
+    test_security.py         # Auth bypass, RBAC, SQL injection, XSS
+    test_performance.py      # Response time, concurrency, pagination
+    test_compliance.py       # Audit trails, billing traceability, data integrity
 ```
 
 ## How to run locally

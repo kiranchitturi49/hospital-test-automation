@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Management System — Flow Slideshow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#0d1117;color:#c9d1d9;overflow:hidden;height:100vh}
+.slide{display:none;width:100vw;height:100vh;padding:60px 80px;flex-direction:column;justify-content:center}
+.slide.active{display:flex}
+.slide h1{font-size:2.8em;color:#58a6ff;margin-bottom:16px;border-bottom:3px solid #30363d;padding-bottom:12px}
+.slide h2{font-size:1.8em;color:#79c0ff;margin-bottom:12px}
+.slide h3{font-size:1.3em;color:#d2a8ff;margin-top:18px;margin-bottom:8px}
+.slide p,.slide li{font-size:1.15em;line-height:1.7}
+.slide ul{margin-left:24px}
+.slide li{margin-bottom:6px}
+.slide .flow-box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px 28px;margin:16px 0;font-family:monospace;font-size:1.05em;line-height:2;color:#8b949e;white-space:pre-wrap}
+.slide .flow-box span.step{color:#58a6ff;font-weight:700}
+.slide .flow-box span.arrow{color:#3fb950;font-weight:700}
+.slide .badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:0.85em;font-weight:700;margin-right:6px}
+.badge.green{background:#238636;color:#fff}
+.badge.orange{background:#d29922;color:#fff}
+.badge.red{background:#da3633;color:#fff}
+.badge.purple{background:#8957e5;color:#fff}
+.badge.blue{background:#1f6feb;color:#fff}
+table{border-collapse:collapse;margin:12px 0;width:auto}
+table th,table td{border:1px solid #30363d;padding:8px 14px;text-align:left;font-size:1em}
+table th{background:#21262d;color:#58a6ff}
+.nav{position:fixed;bottom:30px;right:40px;display:flex;gap:12px;z-index:100}
+.nav button{background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:10px 20px;border-radius:8px;font-size:1em;cursor:pointer}
+.nav button:hover{background:#30363d}
+.counter{position:fixed;bottom:34px;left:40px;color:#484f58;font-size:0.95em}
+.title-slide{justify-content:center;align-items:center;text-align:center}
+.title-slide h1{font-size:3.5em;border:none;margin-bottom:8px}
+.title-slide p{font-size:1.4em;color:#8b949e}
+.cols{display:flex;gap:40px;margin-top:12px}
+.cols .col{flex:1}
+</style>
+</head>
+<body>
+
+<!-- ==================== SLIDE 1: Title ==================== -->
+<div class="slide title-slide active" id="s1">
+    <h1>Hospital Management System</h1>
+    <p>Complete Flow Documentation &amp; Test Coverage</p>
+    <p style="margin-top:10px;color:#58a6ff;">16 Entities &bull; 7 Modules &bull; 50+ API Endpoints</p>
+</div>
+
+<!-- ==================== SLIDE 2: System Architecture ==================== -->
+<div class="slide" id="s2">
+    <h1>1. System Architecture</h1>
+    <div class="cols">
+        <div class="col">
+            <h3>Tech Stack</h3>
+            <ul>
+                <li><strong>Backend:</strong> FastAPI + SQLAlchemy ORM</li>
+                <li><strong>Database:</strong> PostgreSQL 15</li>
+                <li><strong>Frontend:</strong> Vanilla HTML/CSS/JS</li>
+                <li><strong>Auth:</strong> JWT Bearer (OAuth2)</li>
+                <li><strong>Deploy:</strong> Docker on AWS EC2</li>
+                <li><strong>CI/CD:</strong> GitHub Actions</li>
+            </ul>
+        </div>
+        <div class="col">
+            <h3>User Roles</h3>
+            <table>
+                <tr><th>Role</th><th>Dashboard</th></tr>
+                <tr><td><span class="badge green">admin</span></td><td>Finance, User Mgmt, Audit</td></tr>
+                <tr><td><span class="badge blue">doctor</span></td><td>Patients, Rx, IP Admission</td></tr>
+                <tr><td><span class="badge purple">staff</span></td><td>OP Registration, Tokens</td></tr>
+                <tr><td><span class="badge orange">medical_desk</span></td><td>Pharmacy, Sales, Returns</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 3: OP Registration ==================== -->
+<div class="slide" id="s3">
+    <h1>2. OP Patient Registration</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Staff Login</span> <span class="arrow">&rarr;</span> <span class="step">Staff Dashboard</span> <span class="arrow">&rarr;</span> <span class="step">+ Register Patient</span> <span class="arrow">&rarr;</span> <span class="step">Fill Form (General / Maternity / Other)</span>
+    <span class="arrow">&darr;</span>
+<span class="step">Enter Vitals (Weight, BP, Temp, SpO2)</span> <span class="arrow">&rarr;</span> <span class="step">Payment (Cash/UPI)</span> <span class="arrow">&rarr;</span> <span class="step">Submit</span>
+    <span class="arrow">&darr;</span>
+<span class="step">POST /api/v1/patients/</span> <span class="arrow">&rarr;</span> <span class="step">OP ID Generated: OP-DDmmmYY</span> <span class="arrow">&rarr;</span> <span class="step">Token Generated</span></div>
+    <h3>Key Steps &amp; Outcomes</h3>
+    <ul>
+        <li>Unique OP-ID from day + phone + year ensures traceability</li>
+        <li>Vitals recorded at registration for baseline</li>
+        <li>Edit history: every update creates immutable <code>patient_history</code> snapshot</li>
+    </ul>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_patients.py</span> <span class="badge blue">test_compliance.py</span> — 12 test cases covering CRUD, search, history snapshots, role access</p>
+</div>
+
+<!-- ==================== SLIDE 4: Doctor Prescription ==================== -->
+<div class="slide" id="s4">
+    <h1>3. OP Prescription Flow</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Doctor Login</span> <span class="arrow">&rarr;</span> <span class="step">Doctor Dashboard</span> <span class="arrow">&rarr;</span> <span class="step">Select Patient</span> <span class="arrow">&rarr;</span> <span class="step">+ New Prescription</span>
+    <span class="arrow">&darr;</span>
+<span class="step">Enter Diagnosis</span> <span class="arrow">&rarr;</span> <span class="step">Select Medicines (Inventory Dropdown)</span> <span class="arrow">&rarr;</span> <span class="step">Dosage + Frequency + Duration</span>
+    <span class="arrow">&darr;</span>
+<span class="step">POST /api/v1/prescriptions/</span> <span class="arrow">&rarr;</span> <span class="step">RX-NNNN Created</span> <span class="arrow">&rarr;</span> <span class="step">Reflects in Medical Desk</span></div>
+    <h3>Key Steps &amp; Outcomes</h3>
+    <ul>
+        <li>Medicine dropdown backed by live inventory (stock + price visible)</li>
+        <li>Prescription stored as JSON in <code>medicines_json</code></li>
+        <li>Printable A4 layout with patient details + vitals + medicines</li>
+        <li>Prescription immediately available at Medical Desk for dispensing</li>
+    </ul>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_prescriptions.py</span> — Create, list, update, delete, per-patient query</p>
+</div>
+
+<!-- ==================== SLIDE 5: IP Admission ==================== -->
+<div class="slide" id="s5">
+    <h1>4. Inpatient Admission</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Doctor Dashboard</span> <span class="arrow">&rarr;</span> <span class="step">Inpatients Tab</span> <span class="arrow">&rarr;</span> <span class="step">+ Admit Patient (select OP ID)</span>
+    <span class="arrow">&darr;</span>
+<span class="step">Ward, Room, Bed, Doctor, Diagnosis</span> <span class="arrow">&rarr;</span> <span class="step">POST /api/v1/inpatients/</span>
+    <span class="arrow">&darr;</span>
+<span class="step">IP ID derived: OP-0374526 &rarr; IP-0374526</span> <span class="arrow">&rarr;</span> <span class="step">Inpatient Management Page</span></div>
+    <h3>Key Steps &amp; Outcomes</h3>
+    <ul>
+        <li>IP ID mirrors OP ID suffix — ensures 1:1 traceability</li>
+        <li>Ward types: General, Maternity, ICU, Private, Semi-Private</li>
+        <li>Status lifecycle: <span class="badge green">Admitted</span> <span class="arrow">&rarr;</span> <span class="badge orange">Transferred</span> / <span class="badge red">Discharged</span></li>
+        <li>Full billing tracked via <code>inpatient_billing_items</code></li>
+    </ul>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_inpatient_flow.py</span> — Admission, listing, by-patient query, billing summary</p>
+</div>
+
+<!-- ==================== SLIDE 6: IP Management ==================== -->
+<div class="slide" id="s6">
+    <h1>5. Inpatient Management (4 Tabs)</h1>
+    <div class="cols">
+        <div class="col">
+            <h3>Medicine Tab</h3>
+            <ul>
+                <li>IP Prescriptions with inventory dropdown</li>
+                <li>Reflects in Medical Desk for dispensing</li>
+            </ul>
+            <h3>Diagnostics Tab</h3>
+            <ul>
+                <li>Lab / Scan / X-Ray / ECG ordering</li>
+                <li>Status: Pending &rarr; In Progress &rarr; Completed</li>
+            </ul>
+        </div>
+        <div class="col">
+            <h3>Activities Tab</h3>
+            <ul>
+                <li>Nursing tasks (BP, injections, dressing)</li>
+                <li>Status: Pending &rarr; Completed / Skipped</li>
+            </ul>
+            <h3>Billing Tab</h3>
+            <ul>
+                <li>Auto-populated from medicine dispense</li>
+                <li>Manual items: room, surgery, lab, nursing</li>
+                <li>Summary by category + grand total</li>
+            </ul>
+        </div>
+    </div>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_inpatient_flow.py</span> — Prescriptions, diagnostics, activities, billing CRUD + summary</p>
+</div>
+
+<!-- ==================== SLIDE 7: Medical Desk Sales ==================== -->
+<div class="slide" id="s7">
+    <h1>6. Medical Desk — Sales &amp; Dispensing</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Medical Desk Login</span> <span class="arrow">&rarr;</span> <span class="step">Dashboard (5 Tabs)</span>
+    <span class="arrow">&darr;</span>
+<strong>Direct Sale:</strong>   <span class="step">+ Sell</span> <span class="arrow">&rarr;</span> <span class="step">Search Patient</span> <span class="arrow">&rarr;</span> <span class="step">Add to Cart</span> <span class="arrow">&rarr;</span> <span class="step">Cash/UPI</span> <span class="arrow">&rarr;</span> <span class="step">Confirm</span> <span class="arrow">&rarr;</span> <span class="badge green">PAID</span>
+<strong>OP Dispense:</strong>   <span class="step">OP Rx Tab</span> <span class="arrow">&rarr;</span> <span class="step">Click Dispense</span> <span class="arrow">&rarr;</span> <span class="step">Match to Inventory</span> <span class="arrow">&rarr;</span> <span class="step">Confirm</span> <span class="arrow">&rarr;</span> <span class="badge green">PAID</span>
+<strong>IP Dispense:</strong>   <span class="step">IP Rx Tab</span> <span class="arrow">&rarr;</span> <span class="step">Click Dispense</span> <span class="arrow">&rarr;</span> <span class="step">Match to Inventory</span> <span class="arrow">&rarr;</span> <span class="step">Confirm</span> <span class="arrow">&rarr;</span> <span class="badge orange">DUE</span> + auto-billing</div>
+    <h3>Key Differences: OP vs IP</h3>
+    <table>
+        <tr><th>Aspect</th><th>OP Sale</th><th>IP Sale</th></tr>
+        <tr><td>Payment Status</td><td><span class="badge green">PAID</span></td><td><span class="badge orange">DUE</span></td></tr>
+        <tr><td>Auto-Billing</td><td>No</td><td>Yes (inpatient_billing_items)</td></tr>
+        <tr><td>Stock Deduction</td><td>Yes</td><td>Yes</td></tr>
+    </table>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_medicine_sales.py</span> — OP/IP sell, insufficient stock, invalid patient, sales listing</p>
+</div>
+
+<!-- ==================== SLIDE 8: Returns ==================== -->
+<div class="slide" id="s8">
+    <h1>7. Medicine Returns</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Sales Tab</span> <span class="arrow">&rarr;</span> <span class="step">Click Return</span> <span class="arrow">&rarr;</span> <span class="step">Enter Qty + Reason</span> <span class="arrow">&rarr;</span> <span class="step">POST /medicine-returns/</span>
+    <span class="arrow">&darr;</span>  <strong>Atomic Transaction:</strong>
+    1. <span class="step">Create RET-NNNN record</span>
+    2. <span class="step">Restore stock in inventory</span>  &larr; <strong>FIXED</strong>
+    3. <span class="step">Recalculate sale total_price</span> = unit_price &times; (sold &minus; returned)  &larr; <strong>FIXED</strong>
+    4. <span class="step">Update payment_status</span> &rarr; partial_return / full_return  (OP &amp; IP)
+    5. <span class="step">Adjust IP billing item</span> (qty &amp; total)
+    6. <span class="step">Write AuditLog</span> (old/new JSON values)</div>
+    <h3>Anti-Fraud Validation</h3>
+    <ul>
+        <li>Cannot return more than <code>sold - already_returned</code></li>
+        <li>Return qty must be &gt; 0</li>
+        <li>Rollback on any failure (atomic)</li>
+    </ul>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_medicine_returns.py</span> — Stock restoration, price recalculation, over-return prevention, zero/negative qty, nonexistent sale</p>
+</div>
+
+<!-- ==================== SLIDE 9: Due Tracking ==================== -->
+<div class="slide" id="s9">
+    <h1>8. Due Tracking &amp; Clearance</h1>
+    <h3>Flow Diagram</h3>
+    <div class="flow-box"><span class="step">Dues Tab</span> <span class="arrow">&rarr;</span> <span class="step">List sales where status = "due" or "partial_return"</span>
+    <span class="arrow">&darr;</span>
+<span class="step">Click Clear Due</span> <span class="arrow">&rarr;</span> <span class="step">POST /medicine-returns/dues/clear/{sale_id}</span>
+    <span class="arrow">&darr;</span>
+<span class="step">payment_status &rarr; "cleared"</span>, <span class="step">cleared_at = now</span>, <span class="step">due_amount = 0</span></div>
+    <h3>Payment Status Lifecycle</h3>
+    <table>
+        <tr><th>Status</th><th>Meaning</th></tr>
+        <tr><td><span class="badge green">paid</span></td><td>OP sale — paid upfront</td></tr>
+        <tr><td><span class="badge orange">due</span></td><td>IP sale — pending settlement</td></tr>
+        <tr><td><span class="badge green">cleared</span></td><td>Due settled at discharge</td></tr>
+        <tr><td><span class="badge purple">partial_return</span></td><td>Some qty returned</td></tr>
+        <tr><td><span class="badge red">full_return</span></td><td>All qty returned, total = 0</td></tr>
+    </table>
+</div>
+
+<!-- ==================== SLIDE 10: Finance ==================== -->
+<div class="slide" id="s10">
+    <h1>9. Finance &amp; Audit Dashboard</h1>
+    <div class="cols">
+        <div class="col">
+            <h3>Expense Management</h3>
+            <ul>
+                <li>Categories: Salary, Utilities, Rent, Supplies, Maintenance, Equipment, Insurance, Other</li>
+                <li>Admin-only CRUD</li>
+                <li>Date range filtering</li>
+            </ul>
+            <h3>Financial Summaries</h3>
+            <ul>
+                <li><strong>Hospital:</strong> Patient income vs expenses</li>
+                <li><strong>Medical Desk:</strong> Sales revenue + top medicines</li>
+                <li><strong>Overall:</strong> Total income - expenses = net profit</li>
+            </ul>
+        </div>
+        <div class="col">
+            <h3>Audit Trail</h3>
+            <ul>
+                <li><strong>Patient History:</strong> Immutable edit snapshots</li>
+                <li><strong>Audit Logs:</strong> RETURN transactions with old/new JSON</li>
+                <li><strong>Sale Records:</strong> sold_by, payment_status, timestamps</li>
+                <li><strong>Return Records:</strong> returned_by, reason, refund_amount</li>
+                <li><strong>Billing Linkage:</strong> sale_ref_id traces billing &harr; sale</li>
+            </ul>
+        </div>
+    </div>
+    <h3>Test Coverage</h3>
+    <p><span class="badge green">test_finance_audit.py</span> <span class="badge blue">test_compliance.py</span> — Expenses CRUD, summaries, role access, data integrity checks</p>
+</div>
+
+<!-- ==================== SLIDE 11: Test Summary ==================== -->
+<div class="slide" id="s11">
+    <h1>10. Test Coverage Summary</h1>
+    <table>
+        <tr><th>Test File</th><th>Type</th><th>Tests</th><th>Module</th></tr>
+        <tr><td>test_auth.py</td><td>Functional</td><td>5</td><td>Authentication</td></tr>
+        <tr><td>test_patients.py</td><td>Functional</td><td>6+</td><td>OP Registration</td></tr>
+        <tr><td>test_appointments.py</td><td>Functional</td><td>4+</td><td>Token/Scheduling</td></tr>
+        <tr><td>test_prescriptions.py</td><td>Functional</td><td>5+</td><td>OP Prescriptions</td></tr>
+        <tr><td>test_medicine_inventory.py</td><td>Functional</td><td>7</td><td>Inventory CRUD</td></tr>
+        <tr><td>test_medicine_sales.py</td><td>Functional</td><td>5</td><td>Sales / Dispensing</td></tr>
+        <tr><td>test_medicine_returns.py</td><td>Functional</td><td>9</td><td>Returns / Fraud</td></tr>
+        <tr><td>test_inpatient_flow.py</td><td>Functional</td><td>8</td><td>IP Module (all tabs)</td></tr>
+        <tr><td>test_finance_audit.py</td><td>Functional</td><td>8</td><td>Expenses / Summaries</td></tr>
+        <tr><td>test_security.py</td><td>Non-Functional</td><td>8</td><td>Auth, RBAC, Injection</td></tr>
+        <tr><td>test_performance.py</td><td>Non-Functional</td><td>11</td><td>Response Time, Concurrency</td></tr>
+        <tr><td>test_compliance.py</td><td>Non-Functional</td><td>8</td><td>Audit Trails, Data Integrity</td></tr>
+    </table>
+    <p style="margin-top:16px;font-size:1.2em;"><strong>Total: ~84 test cases</strong> covering all discovered flows.</p>
+</div>
+
+<!-- ==================== SLIDE 12: ER Overview ==================== -->
+<div class="slide title-slide" id="s12">
+    <h1>ER Diagram</h1>
+    <p>16 Tables &bull; 20+ Foreign Keys &bull; Full documentation in <code>docs/er-diagram.md</code></p>
+    <p style="margin-top:20px;color:#8b949e;">Core: users, patients, doctors, departments<br>
+    OP: appointments, prescriptions, patient_history<br>
+    IP: inpatients, ip_prescriptions, ip_medicine_issues, ip_diagnostics, ip_activities, ip_billing_items<br>
+    Pharmacy: medicines, medicine_sales, medicine_returns<br>
+    Finance: expenses, audit_logs</p>
+</div>
+
+<!-- ==================== Navigation ==================== -->
+<div class="counter" id="counter">1 / 12</div>
+<div class="nav">
+    <button onclick="prev()">&larr; Previous</button>
+    <button onclick="next()">Next &rarr;</button>
+</div>
+
+<script>
+var current = 1;
+var total = 12;
+
+function show(n) {
+    document.querySelectorAll('.slide').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('s' + n).classList.add('active');
+    document.getElementById('counter').textContent = n + ' / ' + total;
+}
+
+function next() { if (current < total) { current++; show(current); } }
+function prev() { if (current > 1) { current--; show(current); } }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+});
+</script>
+</body>
+</html>
