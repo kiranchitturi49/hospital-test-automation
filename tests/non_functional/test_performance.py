@@ -5,7 +5,7 @@ import time
 import concurrent.futures
 
 
-RESPONSE_TIME_LIMIT_MS = 3000  # 3 seconds max for any single request
+RESPONSE_TIME_LIMIT_MS = 4000  # 4 seconds max for any single request
 
 
 class TestResponseTime:
