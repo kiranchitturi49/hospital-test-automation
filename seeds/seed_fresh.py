@@ -20,7 +20,7 @@ from app.models.medicine_sale import MedicineSale
 from app.models.medicine_return import MedicineReturn
 from app.models.inpatient import Inpatient
 from app.models.inpatient_activity import InpatientActivity
-from app.models.inpatient_billing import InpatientBilling
+from app.models.inpatient_billing import InpatientBillingItem
 from app.models.inpatient_diagnostic import InpatientDiagnostic
 from app.models.inpatient_prescription import InpatientPrescription
 from app.models.patient_history import PatientHistory
@@ -61,7 +61,7 @@ try:
     d_inp_act = db.query(InpatientActivity).delete()
     d_inp_diag = db.query(InpatientDiagnostic).delete()
     d_inp_rx = db.query(InpatientPrescription).delete()
-    d_inp_bill = db.query(InpatientBilling).delete()
+    d_inp_bill = db.query(InpatientBillingItem).delete()
     d_returns = db.query(MedicineReturn).delete()
     d_ms = db.query(MedicineSale).delete()
     d_rx = db.query(Prescription).delete()
