@@ -45,7 +45,7 @@ Add in repo → Settings → Secrets → Actions:
 
 | Secret | Value |
 |--------|-------|
-| `EC2_HOST` | `65.0.100.26` |
+| `EC2_HOST` | `65.0.98.124` |
 | `EC2_SSH_KEY` | Contents of `.pem` key file |
 | `TEST_ADMIN_USER` | `admin` |
 | `TEST_ADMIN_PASS` | `admin123` |

@@ -6,7 +6,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.getenv("APP_BASE_URL", "http://65.0.100.26:8000")
+BASE_URL = os.getenv("APP_BASE_URL", "http://65.0.98.124:8000")
 ADMIN_USER = os.getenv("TEST_ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("TEST_ADMIN_PASS", "admin123")
 DOCTOR_USER = os.getenv("TEST_DOCTOR_USER", "dr_padmavathi")
