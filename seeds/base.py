@@ -37,11 +37,13 @@ def rand_address() -> str:
     return f"{random.randint(1, 99)}-{random.randint(1, 9)}, {random.choice(CITIES)}"
 
 def generate_patient_id(db, phone: str) -> str:
-    """Matches app logic: DDMMYYYYpppYY with -N suffix on collision."""
+    """Matches current app logic: OP-DDmmmYY with optional -N suffix on collision."""
     from app.models.patient import Patient
-    date_part   = TODAY.strftime("%d%m%Y")
-    phone_last3 = phone[-3:] if len(phone) >= 3 else "000"
-    year_part   = TODAY.strftime("%y")
-    base_id     = f"{date_part}{phone_last3}{year_part}"
-    existing    = db.query(Patient).filter(Patient.patient_id.like(f"{base_id}%")).count()
+    from datetime import date as date_module
+    today = date_module.today()
+    day_part = today.strftime("%d")
+    phone_last3 = phone[-3:] if phone and len(phone) >= 3 else "000"
+    year_part = today.strftime("%y")
+    base_id = f"OP-{day_part}{phone_last3}{year_part}"
+    existing = db.query(Patient).filter(Patient.patient_id.like(f"{base_id}%")).count()
     return f"{base_id}-{existing + 1}" if existing > 0 else base_id

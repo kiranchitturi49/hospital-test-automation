@@ -1,4 +1,5 @@
 """Patient API tests — hits live app over HTTP."""
+import re
 import requests
 
 
@@ -35,11 +36,7 @@ def test_patient_id_format(base_url, admin_headers):
     patients = r.json()
     for p in patients:
         pid = p.get("patient_id", "")
-        # Format: OP-DDMMYYYY-NNN-N (12 chars) or similar
-        assert len(pid) >= 12, f"Invalid patient ID format: {pid}"
-        assert pid.startswith("OP-"), f"Invalid patient ID prefix: {pid}"
-        # Check date part (positions 3-9 should be numeric)
-        assert pid[3:10].isdigit(), f"Date part not numeric: {pid}"
+        assert re.match(r"^OP-\d{7}(-\d+)?$", pid), f"Invalid patient ID format: {pid}"
 
 
 def test_get_single_patient(base_url, admin_headers):

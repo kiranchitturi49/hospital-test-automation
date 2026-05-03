@@ -3,7 +3,7 @@ Fresh seed: wipe all clinical data, insert 10 female patients.
   - 5 with appointments TODAY
   - 3 with appointments TOMORROW
   - 2 historical (past)
-Patient IDs follow app logic: DDMMYYYYpppYY
+Patient IDs follow app logic: OP-DDmmmYY
 
 Run inside container:
   docker cp seeds/seed_fresh.py hospital_api:/app/seed_fresh.py
@@ -17,6 +17,13 @@ from app.models.patient import Patient, Gender, BloodGroup, PatientFormType, Pay
 from app.models.appointment import Appointment, AppointmentStatus
 from app.models.prescription import Prescription
 from app.models.medicine_sale import MedicineSale
+from app.models.medicine_return import MedicineReturn
+from app.models.inpatient import Inpatient
+from app.models.inpatient_activity import InpatientActivity
+from app.models.inpatient_billing import InpatientBilling
+from app.models.inpatient_diagnostic import InpatientDiagnostic
+from app.models.inpatient_prescription import InpatientPrescription
+from app.models.patient_history import PatientHistory
 from app.models.user import User
 from app.core.security import get_password_hash
 from base import (TODAY, TOMORROW, NOW, FEMALE_FIRST, LAST_NAMES,
@@ -42,12 +49,22 @@ db = SessionLocal()
 try:
     # ── Wipe (FK-safe order) ──────────────────────────────────────────────────
     print("Clearing existing data...")
+    d_inp_act = db.query(InpatientActivity).delete()
+    d_inp_diag = db.query(InpatientDiagnostic).delete()
+    d_inp_rx = db.query(InpatientPrescription).delete()
+    d_inp_bill = db.query(InpatientBilling).delete()
+    d_returns = db.query(MedicineReturn).delete()
     d_ms = db.query(MedicineSale).delete()
     d_rx = db.query(Prescription).delete()
     d_ap = db.query(Appointment).delete()
+    d_history = db.query(PatientHistory).delete()
+    d_ip = db.query(Inpatient).delete()
     d_pt = db.query(Patient).delete()
     db.commit()
-    print(f"  Removed: {d_ms} sales | {d_rx} prescriptions | {d_ap} appointments | {d_pt} patients")
+    print(
+        f"  Removed: {d_ms} sales | {d_rx} prescriptions | {d_ap} appointments | "
+        f"{d_history} histories | {d_ip} inpatients | {d_pt} patients"
+    )
 
     # ── Ensure nurse1 user ────────────────────────────────────────────────────
     if not db.query(User).filter(User.username == "nurse1").first():
